@@ -60,7 +60,7 @@ def levitus98(da_var,basin=['all'],reuse_weights=True,
             
 
     if mask_loc is None :
-        input_file = '/scratch/joedhsu/proj1/data/ocean_mask/Levitus1998/'
+        input_file = '/maloney-scratch/joedhsu/proj1/data/ocean_mask/Levitus1998/'
     else:
         input_file = mask_loc
 
