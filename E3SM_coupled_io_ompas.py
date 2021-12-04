@@ -12,7 +12,7 @@ import os
 import warnings
 from io_model import E3SM_daily_cori_io_dask
 
-client = Client(n_workers=10,threads_per_worker=10,processes=True)
+client = Client(n_workers=1,threads_per_worker=100,processes=False)
 
 
 warnings.simplefilter("ignore")
