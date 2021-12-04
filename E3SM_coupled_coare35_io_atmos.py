@@ -17,7 +17,7 @@ histlist = ['h1','h2','h3','h4']
 
 varlist_h1 = ['TS', 'TSMN', 'TSMX', 'U10', 'U200', 'U850', 'V850', 'QBOT', 'PRECC',
               'PRECL', 'SST', 'PSL', 'PS', 'QREFHT', 'QRL', 'QRS', 'TAUX', 'TAUY',
-              'TREFHT', 'PBLH']
+              'TREFHT', 'PBLH', 'area']
 
 varlist_h2 = ['FLDS', 'FLNS', 'FLNSC', 'FLNT', 'FLUT', 'FLUTC', 'FSDS', 'FSDSC',
               'FSNS', 'FSNSC', 'FSNT', 'FSNTC', 'FSNTOA', 'FSNTOAC', 'FSUTOA',
@@ -32,11 +32,12 @@ varlist = [varlist_h1,varlist_h2,varlist_h3,varlist_h4]
 
 
 
-output_dir = '/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/20211029_mod_coare35.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl/'
+
+output_dir = '/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/20211029_mod_coare35_year1.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl/'
 
 for nhist,hist in enumerate(histlist):
     print("Collecting %s data"%hist)
-    ds_e3sm_h = E3SM_coare_daily_cori_io_dask(hist=hist,case='coare35')
+    ds_e3sm_h = E3SM_coare_daily_cori_io_dask(hist=hist,case='coare35_year1')
     for var in varlist[nhist]:
         print("===============================")
         print('Output %s'%var)

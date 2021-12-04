@@ -17,7 +17,9 @@ client = Client(n_workers=1,threads_per_worker=10,processes=False)
 
 warnings.simplefilter("ignore")
 
-histlist = ['forcing_daily','diagnostic_daily']
+histlist = ['3d_monthly','forcing_daily','diagnostic_daily']
+
+varlist_1 = [ "salinity","temperature","velocityMeridional","velocityZonal"]
 
 varlist_2 = [ "windStressZonal", "windStressMeridional", "latentHeatFlux",
              "sensibleHeatFlux", "longWaveHeatFluxUp", "longWaveHeatFluxDown",
@@ -28,14 +30,14 @@ varlist_3 = ["tThreshMLD", "dThreshMLD", "dGradMLD", "tGradMLD", "ssh",
              "temperatureAtSurface", "surfaceVelocityMeridional","surfaceVelocityZonal"]
 
 
-varlist = [varlist_2,varlist_3]
+varlist = [varlist_1,varlist_2,varlist_3]
 
 
-output_dir = '/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/20211029_mod_coare35.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl/'
+output_dir = '/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/20211029_mod_coare35_year1.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl/'
 
 for nhist,hist in enumerate(histlist):
     print("Collecting %s data"%hist)
-    ds_e3sm_h = E3SM_coare_daily_cori_io_dask(hist=hist,case='coare35',realm='ocn')
+    ds_e3sm_h = E3SM_coare_daily_cori_io_dask(hist=hist,case='coare35_year1',realm='ocn')
     for var in varlist[nhist]:
         print("===============================")
         print('output %s'%var)
