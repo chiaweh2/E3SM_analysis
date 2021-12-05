@@ -10,6 +10,451 @@ import dask
 
 
 
+def E3SM_daily_cori_io_dask(hist='h2',case='10years',realm='atm'):
+    """
+    This is a function to create one variable one file ncfile
+    based on the regridded dataset from E3SM simulation output.
+    The function concat all available/specified time to one 
+    single file for one variable.
+    
+    
+    This function is specifically for the rerun coupled simulation on Cori. 
+    This is specific to the original flux algorithm output.
+    This is E3SM daily output from DOE funded project on E3SM.
+
+    Inputs:
+    =================
+    hist (string) : different historical output ex: 'h1','h2',...
+                    this kwarg is only for atmospheric model output
+
+    case (string) : to output the one variable one file with 5 years 
+                    or 10 years of data. Currently only have two options
+                    '5years' or '10years'
+    
+    realm (string) : the kwarg to output ocean model or atmospheric model 
+                     variables. Only two options 'atm' or 'ocn'.
+
+
+    Outputs:
+    =================
+    ds_out (xr.Dataset) : a xarray dataset with only one variable in the form of dask array 
+
+    """
+    
+    
+
+    if case in ['5years']:
+        casename1 = '20210501.HIST2000_365days.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+        casename2 = '20210501.HIST2000_365_cont.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+        casename3 = '20210501.HIST2000_365_cont2.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+        totalcase = [casename1,casename2,casename3]
+    elif case in ['10years']:
+        casename2 = '20210501.HIST2000_365_cont.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+        casename3 = '20210501.HIST2000_365_cont2.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+        casename4 = '20210501.HIST2000_365_cont3.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+        casename5 = '20210501.HIST2000_365_cont4.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+        totalcase = [casename2,casename3,casename4,casename5]
+    else :
+        print('Please enter casename')
+        
+    
+    if realm == 'atm':
+        da_list = []
+        for casename in totalcase:
+            data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
+                                                    casename,
+                                                    'regrid')
+
+            data_hist_files = '%s.cam.%s.????-??-??-00000.nc'%(casename,hist)
+
+            ds_atm_hist = xr.open_mfdataset(os.path.join(data_path,data_hist_files),
+                                             chunks={'time':100,'lat':-1,'lon':-1})
+            da_list.append(ds_atm_hist)
+
+        ds_atm = xr.concat(da_list,dim='time')   # Dataset
+        ds_out = ds_atm
+        
+    elif realm == 'ocn':
+        da_list = []
+        for casename in totalcase:
+            data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
+                                                    casename,
+                                                    'regrid')
+
+            data_hist_files = 'mpaso.hist.%s.????-??-??.nc'%(hist)
+            ds_ocn_hist = xr.open_mfdataset(os.path.join(data_path,data_hist_files),concat_dim='Time', combine='nested')
+            da_list.append(ds_ocn_hist)
+
+        ds_ocn = xr.concat(da_list,dim='Time')   # Dataset
+        ds_out = ds_ocn
+        
+
+
+    return ds_out
+
+#############################################################################################
+
+def E3SM_daily_year1_cori_io_dask(hist='h2',realm='atm'):
+    """
+    This is a function to create one variable one file ncfile
+    based on the regridded dataset from E3SM simulation output.
+    The function concat all available/specified time to one 
+    single file for one variable but only for the YEAR1 of 
+    COUPLED simulations due to different variable list and 
+    different ocean model output file name.
+    
+    
+    This function is specifically for the rerun coupled simulation on Cori. 
+    This is specific to the original flux algorithm output.
+    This is E3SM daily output from DOE funded project on E3SM.
+
+    Inputs:
+    =================
+    hist (string) : different historical output ex: 'h1','h2',...
+                    this kwarg is only for atmospheric model output
+    
+    realm (string) : the kwarg to output ocean model or atmospheric model 
+                     variables. Only two options 'atm' or 'ocn'.
+
+
+    Outputs:
+    =================
+    ds_out (xr.Dataset) : a xarray dataset with only one variable in the form of dask array 
+
+    """
+
+    
+    casename = '20210501.HIST2000_365days.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+    totalcase = [casename]
+    
+    if realm == 'atm':
+        da_list = []
+        for casename in totalcase:
+            data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
+                                                    casename,
+                                                    'regrid')
+
+            data_hist_files = '%s.cam.%s.????-??-??-00000.nc'%(casename,hist)
+
+            ds_atm_hist = xr.open_mfdataset(os.path.join(data_path,data_hist_files),
+                                             chunks={'time':100,'lat':-1,'lon':-1})
+            da_list.append(ds_atm_hist)
+
+        ds_atm = xr.concat(da_list,dim='time')   # Dataset
+        ds_out = ds_atm
+        
+    elif realm == 'ocn':
+        da_list = []
+        for casename in totalcase:
+            data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
+                                                    casename,
+                                                    'regrid')
+            if hist == 'am.highFrequencyOutput':
+                data_hist_files = 'mpaso.hist.%s.????-??-??_00.00.00.nc'%(hist)
+            else:
+                data_hist_files = 'mpaso.hist.%s.????-??-??.nc'%(hist)
+            ds_ocn_hist = xr.open_mfdataset(os.path.join(data_path,data_hist_files),
+                                            concat_dim='Time', 
+                                            combine='nested')
+            da_list.append(ds_ocn_hist)
+
+        ds_ocn = xr.concat(da_list,dim='Time')   # Dataset
+        ds_out = ds_ocn
+        
+
+
+    return ds_out
+
+#############################################################################################
+
+def E3SM_coare_daily_cori_io_dask(hist='h2',case='coare30',realm='atm'):
+    """
+    This is a function to create one variable one file ncfile
+    based on the regridded dataset from E3SM simulation output.
+    The function concat all available/specified time to one 
+    single file for one variable.
+    
+    
+    This function is specifically for the rerun coupled simulation on Cori. 
+    This is specific to the COARE3.0/COARE3.5 flux algorithm output.
+    This is E3SM daily output from DOE funded project on E3SM.
+
+    Inputs:
+    =================
+    hist (string) : different historical output ex: 'h1','h2',...
+                    this kwarg is only for atmospheric model output
+
+    case (string) : to output the one variable one file with COARE3.0 5days 
+                    or COARE3.5 year1 simulations. Currently only have two options
+                    'coare30' or 'coare35_year1'
+    
+    realm (string) : the kwarg to output ocean model or atmospheric model 
+                     variables. Only two options 'atm' or 'ocn'.
+
+
+    Outputs:
+    =================
+    ds_out (xr.Dataset) : a xarray dataset with only one variable in the form of dask array 
+
+    """
+    
+    
+
+    if case in ['coare30']:
+        casename1 = '20211029_mod_coare30.HIST2000.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+        totalcase = [casename1]
+    elif case in ['coare35_year1']:
+        casename1 = '20211029_mod_coare35.HIST2000_365.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+        totalcase = [casename1]
+    else :
+        print('Please enter casename')
+        
+    
+    if realm == 'atm':
+        da_list = []
+        for casename in totalcase:
+            data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
+                                                    casename,
+                                                    'regrid')
+
+            data_hist_files = '%s.cam.%s.????-??-??-00000.nc'%(casename,hist)
+
+            ds_atm_hist = xr.open_mfdataset(os.path.join(data_path,data_hist_files),
+                                             chunks={'time':100,'lat':-1,'lon':-1})
+            da_list.append(ds_atm_hist)
+
+        ds_atm = xr.concat(da_list,dim='time')   # Dataset
+        ds_out = ds_atm
+        
+    elif realm == 'ocn':
+        da_list = []
+        for casename in totalcase:
+            data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
+                                                    casename,
+                                                    'regrid')
+
+            data_hist_files = 'mpaso.hist.%s.????-??-??.nc'%(hist)
+            ds_ocn_hist = xr.open_mfdataset(os.path.join(data_path,data_hist_files),concat_dim='Time', combine='nested')
+            da_list.append(ds_ocn_hist)
+
+        ds_ocn = xr.concat(da_list,dim='Time')   # Dataset
+        ds_out = ds_ocn
+
+    return ds_out
+
+#############################################################################################
+
+def E3SM_io_HIST2000_branched_all(lon_lim,lat_lim,varlist=['FSNT','FLNT'],case=None,realm='atm'):
+
+    """
+    The model io for E3SM daily output from the 2000 restart on Cori.
+    
+    The data need to be seperated by variables. The variable seperated
+    output is generated by 
+    1. E3SM_coupled_XXXX_io_atmos
+    2. E3SM_coupled_XXXX_io_ompas
+
+    Inputs:
+    =================
+    lon_lim (list) : a list object containing the min and max value of 
+                     longitude of the desired region.
+
+    lat_lim (list) : a list object containing the min and max value of 
+                     latitude of the desired region.
+    
+    case (string) : option including 'coare30', 'coare35', 'coare35_year1'. Default is None
+                    need to pick sepcific string for the function to work.
+
+
+    Outputs:
+    =================
+    ds_all_crop (xr.Dataset) : a xarray dataset in the form of dask array 
+
+    """
+
+    if case in ['coare30_5days'] :
+        casename = '20211029_mod_coare30.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+    elif case in ['coare35_year1']:
+        casename = '20211029_mod_coare35_year1.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+    elif case in ['original']:
+        casename = '20210501.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+    else :
+        print('Please enter casename')
+    #     return
+
+    # file name setting
+    data_vars = varlist
+
+    data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
+                            casename)
+    if realm == 'atm':
+        da_list = []
+        for var in data_vars:
+            da_list.append(xr.open_dataset(os.path.join(data_path,"HIST2000_branched_atmos_%s.nc"%var)))
+
+        if case in ['original']:
+            for var in data_vars:
+                try :
+                    ds = xr.open_dataset(os.path.join(data_path,"HIST2000_branched_atmos_%s_year1.nc"%var))
+                    da_list.append(ds)
+                except :
+                    print('No Year1 data for %s'%var)
+                    
+    elif realm == 'ocn':
+        da_list = []
+        for var in data_vars:
+            da_list.append(xr.open_dataset(os.path.join(data_path,"HIST2000_branched_mpaso_%s.nc"%var)))
+
+        if case in ['original']:
+            for var in data_vars:
+                try :
+                    ds = xr.open_dataset(os.path.join(data_path,"HIST2000_branched_mpasos_%s_year1.nc"%var))
+                    da_list.append(ds)
+                except :
+                    print('No Year1 data for %s'%var)
+        
+            
+    ds_all = xr.merge(da_list)
+
+
+    ds_all_crop = xr.Dataset()
+    for nvar,var in enumerate(data_vars):
+        ds_all_crop[var] = (ds_all[var])\
+                                        .where((ds_all[var].lon>=np.array(lon_lim).min())&
+                                               (ds_all[var].lon<=np.array(lon_lim).max())&
+                                               (ds_all[var].lat>=np.array(lat_lim).min())&
+                                               (ds_all[var].lat<=np.array(lat_lim).max()),
+                                               drop=True)
+
+
+    return ds_all_crop
+
+
+#############################################################################################
+
+def E3SM_COARE_io(lon_lim,lat_lim,case=None):
+
+    """
+    The model io for latent heat flux diagnostic. 
+    If there are more needed model variables, a manual 
+    added variable in the setting section is available.
+
+    This is E3SM daily output from the 2000 restart on Cori.
+
+    The io function also calculate the 
+        1. surface saturated specific humidity (qsurf)
+        2. specific humidity difference between qsurf and huss (del_q)
+
+    To accomplish the calculation of qsurf
+        - ts (surface temperature)
+        - psl (sea level pressure)
+    are nesessary variables in this model io. 
+
+    Inputs:
+    =================
+    lon_lim (list) : a list object containing the min and max value of 
+                     longitude of the desired region.
+
+    lat_lim (list) : a list object containing the min and max value of 
+                     latitude of the desired region.
+    
+    case (string) : option including 'coare30', 'coare35'. Default is None
+                    need to pick sepcific string for the function to work.
+
+
+    Outputs:
+    =================
+    ds_all_ts (xr.Dataset) : a xarray dataset in the form of dask array 
+
+    """
+
+    if case in ['coare30'] :
+        casename = '20211029_mod_coare30.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+    elif case in ['coare35']:
+        casename = '20211029_mod_coare35.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+    else :
+        print('Please enter casename')
+    #     return
+
+    # file name setting
+    data_vars = ['PS',
+                 'TS',
+                 'LHFLX',
+                 'PRECC',
+                 'PRECL',
+                 'QBOT',
+                 'U10',
+                 'SST',
+                 'TREFHT',
+                 'QREFHT']
+
+    data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
+                            casename)
+    da_list = []
+    for var in data_vars:
+        da_list.append(xr.open_dataset(os.path.join(data_path,"HIST2000_branched_atmos_%s.nc"%var)))
+   
+    ds_atm = xr.merge(da_list)
+
+
+    ds_atm_trop_daily = xr.Dataset()
+    for nvar,var in enumerate(data_vars):
+        ds_atm_trop_daily[var] = (ds_atm[var])\
+                                        .where((ds_atm[var].lon>=np.array(lon_lim).min())&
+                                               (ds_atm[var].lon<=np.array(lon_lim).max())&
+                                               (ds_atm[var].lat>=np.array(lat_lim).min())&
+                                               (ds_atm[var].lat<=np.array(lat_lim).max()),
+                                               drop=True)
+
+
+    ds_atm_trop_daily['PRECT'] = ds_atm_trop_daily['PRECC']+ds_atm_trop_daily['PRECL']
+    ds_atm_trop_daily = ds_atm_trop_daily.rename({'U10':'sfcWind','LHFLX':'hfls','PRECT':'pr'})
+
+
+    ds_all_ts = ds_atm_trop_daily
+
+
+    # # Calculate $\Delta$q
+    #
+    # $\delta$ q is the specific humidity difference between
+    # saturation q near surface determined by SST and 2m(3m) q.
+    # - To calculate the q near surface, I use the slp and dewpoint
+    #    assuming the same as SST.
+    # - To calculate the q at 2m, I use the RH at 2m, T at 1m, and
+    #    slp to determine the mix ratio and then the specific humidity
+
+
+    import metpy.calc
+    from metpy.units import units
+    da_q_surf = ds_all_ts['hfls'].copy()*np.nan
+    da_q_2m = ds_all_ts['hfls'].copy()*np.nan
+
+    mixing_ratio_surf = metpy.calc.saturation_mixing_ratio(ds_all_ts['PS'].values*units.Pa,
+                                                           ds_all_ts['TS'].values*units.K)
+    q_surf = metpy.calc.specific_humidity_from_mixing_ratio(mixing_ratio_surf)
+    q_2m = metpy.calc.specific_humidity_from_mixing_ratio(ds_all_ts['QREFHT'].values)
+
+    # unit for mixing ratio and specific humidity is kg/kg
+    da_q_surf.values = q_surf.magnitude
+    da_q_2m.values = q_2m
+
+    ds_all_ts['qsurf'] = da_q_surf
+    ds_all_ts['huss'] = da_q_2m
+    ds_all_ts['del_q'] = 0.98*ds_all_ts['qsurf']-ds_all_ts['huss']
+#     ds_all_ts['del_q'] = ds_all_ts['del_q'].where(ds_all_ts['del_q']>0.)
+#     ds_all_ts['SST-0.2'] = ds_all_ts['SST']-0.2
+    ds_all_ts['dT'] = ds_all_ts['TS']-ds_all_ts['TREFHT']
+
+
+    return ds_all_ts
+
+
+#############################################################################################
+# below are outdated functions 
+# avoid using any functions below if possible
+#
+
+
 def E3SM_daily_cori_io(lon_lim,lat_lim,case=None):
 
     """
@@ -219,434 +664,3 @@ def E3SM_daily_cori_io_sst(lon_lim,lat_lim,case=None):
 
 
     return ds_atm_trop
-
-def E3SM_daily_cori_io_dask(hist='h2',case='10years',realm='atm'):
-
-    """
-    The model io for the rerun on Cori. 
-    If there are more needed model variables, a manual 
-    added variable in the setting section is available.
-    This is E3SM daily output from DOE funded project on E3SM.
-
-    Inputs:
-    =================
-    lon_lim (list) : a list object containing the min and max value of 
-                     longitude of the desired region.
-
-    lat_lim (list) : a list object containing the min and max value of 
-                     latitude of the desired region.
-    
-    case (string) : option including 'UA', 'CTL', and 'COARE'. Default is None
-                    need to pick sepcific string for the function to work.
-
-
-    Outputs:
-    =================
-    ds_all_ts (xr.Dataset) : a xarray dataset in the form of dask array 
-
-    """
-    
-    
-
-    if case in ['5years']:
-        casename1 = '20210501.HIST2000_365days.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-        casename2 = '20210501.HIST2000_365_cont.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-        casename3 = '20210501.HIST2000_365_cont2.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-        totalcase = [casename1,casename2,casename3]
-    elif case in ['11years']:
-        casename1 = '20210501.HIST2000_365days.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-        casename2 = '20210501.HIST2000_365_cont.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-        casename3 = '20210501.HIST2000_365_cont2.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-        casename4 = '20210501.HIST2000_365_cont3.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-        casename5 = '20210501.HIST2000_365_cont4.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-        totalcase = [casename1,casename2,casename3,casename4,casename5]
-    elif case in ['10years']:
-        casename2 = '20210501.HIST2000_365_cont.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-        casename3 = '20210501.HIST2000_365_cont2.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-        casename4 = '20210501.HIST2000_365_cont3.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-        casename5 = '20210501.HIST2000_365_cont4.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-        totalcase = [casename2,casename3,casename4,casename5]
-    else :
-        print('Please enter casename')
-        
-    
-    if realm == 'atm':
-        da_list = []
-        for casename in totalcase:
-            data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
-                                                    casename,
-                                                    'regrid')
-
-            data_hist_files = '%s.cam.%s.????-??-??-00000.nc'%(casename,hist)
-
-            ds_atm_hist = xr.open_mfdataset(os.path.join(data_path,data_hist_files),
-                                             chunks={'time':100,'lat':-1,'lon':-1})
-            da_list.append(ds_atm_hist)
-
-        ds_atm = xr.concat(da_list,dim='time')   # Dataset
-        ds_out = ds_atm
-        
-    elif realm == 'ocn':
-        da_list = []
-        for casename in totalcase:
-            data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
-                                                    casename,
-                                                    'regrid')
-
-            data_hist_files = 'mpaso.hist.%s.????-??-??.nc'%(hist)
-            ds_ocn_hist = xr.open_mfdataset(os.path.join(data_path,data_hist_files),concat_dim='Time', combine='nested')
-            da_list.append(ds_ocn_hist)
-
-        ds_ocn = xr.concat(da_list,dim='Time')   # Dataset
-        ds_out = ds_ocn
-        
-
-
-    return ds_out
-
-def E3SM_daily_year1_cori_io_dask(hist='h2',realm='atm'):
-
-    """
-    The model io for the rerun on Cori for only first year due to different variable list. 
-    If there are more needed model variables, a manual 
-    added variable in the setting section is available.
-    This is E3SM daily output from DOE funded project on E3SM.
-
-    Inputs:
-    =================
-    lon_lim (list) : a list object containing the min and max value of 
-                     longitude of the desired region.
-
-    lat_lim (list) : a list object containing the min and max value of 
-                     latitude of the desired region.
-    
-    case (string) : option including 'UA', 'CTL', and 'COARE'. Default is None
-                    need to pick sepcific string for the function to work.
-
-
-    Outputs:
-    =================
-    ds_all_ts (xr.Dataset) : a xarray dataset in the form of dask array 
-
-    """
-    
-    
-
-    
-    casename = '20210501.HIST2000_365days.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-    totalcase = [casename]
-    
-    if realm == 'atm':
-        da_list = []
-        for casename in totalcase:
-            data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
-                                                    casename,
-                                                    'regrid')
-
-            data_hist_files = '%s.cam.%s.????-??-??-00000.nc'%(casename,hist)
-
-            ds_atm_hist = xr.open_mfdataset(os.path.join(data_path,data_hist_files),
-                                             chunks={'time':100,'lat':-1,'lon':-1})
-            da_list.append(ds_atm_hist)
-
-        ds_atm = xr.concat(da_list,dim='time')   # Dataset
-        ds_out = ds_atm
-        
-    elif realm == 'ocn':
-        da_list = []
-        for casename in totalcase:
-            data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
-                                                    casename,
-                                                    'regrid')
-            if hist == 'am.highFrequencyOutput':
-                data_hist_files = 'mpaso.hist.%s.????-??-??_00.00.00.nc'%(hist)
-            else:
-                data_hist_files = 'mpaso.hist.%s.????-??-??.nc'%(hist)
-            ds_ocn_hist = xr.open_mfdataset(os.path.join(data_path,data_hist_files),
-                                            concat_dim='Time', 
-                                            combine='nested')
-            da_list.append(ds_ocn_hist)
-
-        ds_ocn = xr.concat(da_list,dim='Time')   # Dataset
-        ds_out = ds_ocn
-        
-
-
-    return ds_out
-
-
-def E3SM_coare_daily_cori_io_dask(hist='h2',case='coare30',realm='atm'):
-
-    """
-    The model io for the rerun on Cori. 
-    If there are more needed model variables, a manual 
-    added variable in the setting section is available.
-    This is E3SM daily output from DOE funded project on E3SM.
-
-    Inputs:
-    =================
-    lon_lim (list) : a list object containing the min and max value of 
-                     longitude of the desired region.
-
-    lat_lim (list) : a list object containing the min and max value of 
-                     latitude of the desired region.
-    
-    case (string) : option including 'UA', 'CTL', and 'COARE'. Default is None
-                    need to pick sepcific string for the function to work.
-
-
-    Outputs:
-    =================
-    ds_all_ts (xr.Dataset) : a xarray dataset in the form of dask array 
-
-    """
-    
-    
-
-    if case in ['coare30']:
-        casename1 = '20211029_mod_coare30.HIST2000.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-        totalcase = [casename1]
-    elif case in ['coare35_year1']:
-        casename1 = '20211029_mod_coare35.HIST2000_365.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-        totalcase = [casename1]
-    else :
-        print('Please enter casename')
-        
-    
-    if realm == 'atm':
-        da_list = []
-        for casename in totalcase:
-            data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
-                                                    casename,
-                                                    'regrid')
-
-            data_hist_files = '%s.cam.%s.????-??-??-00000.nc'%(casename,hist)
-
-            ds_atm_hist = xr.open_mfdataset(os.path.join(data_path,data_hist_files),
-                                             chunks={'time':100,'lat':-1,'lon':-1})
-            da_list.append(ds_atm_hist)
-
-        ds_atm = xr.concat(da_list,dim='time')   # Dataset
-        ds_out = ds_atm
-        
-    elif realm == 'ocn':
-        da_list = []
-        for casename in totalcase:
-            data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
-                                                    casename,
-                                                    'regrid')
-
-            data_hist_files = 'mpaso.hist.%s.????-??-??.nc'%(hist)
-            ds_ocn_hist = xr.open_mfdataset(os.path.join(data_path,data_hist_files),concat_dim='Time', combine='nested')
-            da_list.append(ds_ocn_hist)
-
-        ds_ocn = xr.concat(da_list,dim='Time')   # Dataset
-        ds_out = ds_ocn
-        
-
-
-    return ds_out
-
-def E3SM_COARE_io(lon_lim,lat_lim,case=None):
-
-    """
-    The model io for latent heat flux corrections. 
-    If there are more needed model variables, a manual 
-    added variable in the setting section is available.
-
-    This is E3SM daily output from the 2000 restart on Cori.
-
-    The io function also calculate the 
-        1. surface saturated specific humidity (qsurf)
-        2. specific humidity difference between qsurf and huss (del_q)
-
-    To accomplish the calculation of qsurf
-        - ts (surface temperature)
-        - psl (sea level pressure)
-    are nesessary variables in this model io. 
-
-    Inputs:
-    =================
-    lon_lim (list) : a list object containing the min and max value of 
-                     longitude of the desired region.
-
-    lat_lim (list) : a list object containing the min and max value of 
-                     latitude of the desired region.
-    
-    case (string) : option including 'coare30', 'coare35'. Default is None
-                    need to pick sepcific string for the function to work.
-
-
-    Outputs:
-    =================
-    ds_all_ts (xr.Dataset) : a xarray dataset in the form of dask array 
-
-    """
-
-    if case in ['coare30'] :
-        casename = '20211029_mod_coare30.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-    elif case in ['coare35']:
-        casename = '20211029_mod_coare35.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-    else :
-        print('Please enter casename')
-    #     return
-
-    # file name setting
-    data_vars = ['PS',
-                 'TS',
-                 'LHFLX',
-                 'PRECC',
-                 'PRECL',
-                 'QBOT',
-                 'U10',
-                 'SST',
-                 'TREFHT',
-                 'QREFHT']
-
-    data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
-                            casename)
-    da_list = []
-    for var in data_vars:
-        da_list.append(xr.open_dataset(os.path.join(data_path,"HIST2000_branched_atmos_%s.nc"%var)))
-   
-    ds_atm = xr.merge(da_list)
-
-
-    ds_atm_trop_daily = xr.Dataset()
-    for nvar,var in enumerate(data_vars):
-        ds_atm_trop_daily[var] = (ds_atm[var])\
-                                        .where((ds_atm[var].lon>=np.array(lon_lim).min())&
-                                               (ds_atm[var].lon<=np.array(lon_lim).max())&
-                                               (ds_atm[var].lat>=np.array(lat_lim).min())&
-                                               (ds_atm[var].lat<=np.array(lat_lim).max()),
-                                               drop=True)
-
-
-    ds_atm_trop_daily['PRECT'] = ds_atm_trop_daily['PRECC']+ds_atm_trop_daily['PRECL']
-    ds_atm_trop_daily = ds_atm_trop_daily.rename({'U10':'sfcWind','LHFLX':'hfls','PRECT':'pr'})
-
-
-    ds_all_ts = ds_atm_trop_daily
-
-
-    # # Calculate $\Delta$q
-    #
-    # $\delta$ q is the specific humidity difference between
-    # saturation q near surface determined by SST and 2m(3m) q.
-    # - To calculate the q near surface, I use the slp and dewpoint
-    #    assuming the same as SST.
-    # - To calculate the q at 2m, I use the RH at 2m, T at 1m, and
-    #    slp to determine the mix ratio and then the specific humidity
-
-
-    import metpy.calc
-    from metpy.units import units
-    da_q_surf = ds_all_ts['hfls'].copy()*np.nan
-    da_q_2m = ds_all_ts['hfls'].copy()*np.nan
-
-    mixing_ratio_surf = metpy.calc.saturation_mixing_ratio(ds_all_ts['PS'].values*units.Pa,
-                                                           ds_all_ts['TS'].values*units.K)
-    q_surf = metpy.calc.specific_humidity_from_mixing_ratio(mixing_ratio_surf)
-    q_2m = metpy.calc.specific_humidity_from_mixing_ratio(ds_all_ts['QREFHT'].values)
-
-    # unit for mixing ratio and specific humidity is kg/kg
-    da_q_surf.values = q_surf.magnitude
-    da_q_2m.values = q_2m
-
-    ds_all_ts['qsurf'] = da_q_surf
-    ds_all_ts['huss'] = da_q_2m
-    ds_all_ts['del_q'] = 0.98*ds_all_ts['qsurf']-ds_all_ts['huss']
-#     ds_all_ts['del_q'] = ds_all_ts['del_q'].where(ds_all_ts['del_q']>0.)
-#     ds_all_ts['SST-0.2'] = ds_all_ts['SST']-0.2
-    ds_all_ts['dT'] = ds_all_ts['TS']-ds_all_ts['TREFHT']
-
-
-    return ds_all_ts
-
-
-def E3SM_io_HIST2000_branched_all(lon_lim,lat_lim,varlist=['FSNT','FLNT'],case=None,realm='atm'):
-
-    """
-    The model io for E3SM daily output from the 2000 restart on Cori.
-    
-    The data need to be seperated by variables. The variable seperated
-    output is generated by 
-    1. E3SM_coupled_XXXX_io_atmos
-    2. E3SM_coupled_XXXX_io_ompas
-
-    Inputs:
-    =================
-    lon_lim (list) : a list object containing the min and max value of 
-                     longitude of the desired region.
-
-    lat_lim (list) : a list object containing the min and max value of 
-                     latitude of the desired region.
-    
-    case (string) : option including 'coare30', 'coare35', 'coare35_year1'. Default is None
-                    need to pick sepcific string for the function to work.
-
-
-    Outputs:
-    =================
-    ds_all_ts (xr.Dataset) : a xarray dataset in the form of dask array 
-
-    """
-
-    if case in ['coare30_5days'] :
-        casename = '20211029_mod_coare30.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-    elif case in ['coare35_5days']:
-        casename = '20211029_mod_coare35.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-    elif case in ['coare35_year1']:
-        casename = '20211029_mod_coare35_year1.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-    elif case in ['original']:
-        casename = '20210501.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
-    else :
-        print('Please enter casename')
-    #     return
-
-    # file name setting
-    data_vars = varlist
-
-    data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
-                            casename)
-    if realm == 'atm':
-        da_list = []
-        for var in data_vars:
-            da_list.append(xr.open_dataset(os.path.join(data_path,"HIST2000_branched_atmos_%s.nc"%var)))
-
-        if case in ['original']:
-            for var in data_vars:
-                try :
-                    ds = xr.open_dataset(os.path.join(data_path,"HIST2000_branched_atmos_%s_year1.nc"%var))
-                    da_list.append(ds)
-                except :
-                    print('No Year1 data for %s'%var)
-                    
-    elif realm == 'ocn':
-        da_list = []
-        for var in data_vars:
-            da_list.append(xr.open_dataset(os.path.join(data_path,"HIST2000_branched_mpaso_%s.nc"%var)))
-
-        if case in ['original']:
-            for var in data_vars:
-                try :
-                    ds = xr.open_dataset(os.path.join(data_path,"HIST2000_branched_mpasos_%s_year1.nc"%var))
-                    da_list.append(ds)
-                except :
-                    print('No Year1 data for %s'%var)
-        
-            
-    ds_all = xr.merge(da_list)
-
-
-    ds_all_crop = xr.Dataset()
-    for nvar,var in enumerate(data_vars):
-        ds_all_crop[var] = (ds_all[var])\
-                                        .where((ds_all[var].lon>=np.array(lon_lim).min())&
-                                               (ds_all[var].lon<=np.array(lon_lim).max())&
-                                               (ds_all[var].lat>=np.array(lat_lim).min())&
-                                               (ds_all[var].lat<=np.array(lat_lim).max()),
-                                               drop=True)
-
-
-    return ds_all_crop
