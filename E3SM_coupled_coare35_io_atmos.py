@@ -2,7 +2,7 @@
 # coding: utf-8
 
 # # E3SM IO
-# This script covert the scattered simulation result into variable based single file
+# This script convert the scattered simulation result into variable based single file
 
 
 from dask.distributed import Client
@@ -33,11 +33,11 @@ varlist = [varlist_h1,varlist_h2,varlist_h3,varlist_h4]
 
 
 
-output_dir = '/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/20211029_mod_coare35_year1.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl/'
+output_dir = '/maloney-scratch2/joedhsu/E3SM_simulation/20211029_mod_coare35_year5-10.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl/'
 
 for nhist,hist in enumerate(histlist):
     print("Collecting %s data"%hist)
-    ds_e3sm_h = E3SM_coare_daily_cori_io_dask(hist=hist,case='coare35_year1')
+    ds_e3sm_h = E3SM_coare_daily_cori_io_dask(hist=hist,case='coare35_year5-10')
     for var in varlist[nhist]:
         print("===============================")
         print('Output %s'%var)
