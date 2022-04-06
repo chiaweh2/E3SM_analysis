@@ -4,7 +4,7 @@ startyear=2000
 endyear=2000
 #startmon=2
 #endmon=7
-mapfile=../../../E3SM_regrid/mapfiles/map_oEC60to30v3_to_cmip6_180x360_aave.20181001.nc         # path to appropriate mapfile
+mapfile=/maloney-scratch/joedhsu/proj1/data/E3SM_regrid/mapfiles/map_oEC60to30v3_to_cmip6_180x360_aave.20181001.nc         # path to appropriate mapfile
 
 input_dir=../run/mpaso.hist.forcing*.nc
 output_dir=./                                                                                   # output directory path
