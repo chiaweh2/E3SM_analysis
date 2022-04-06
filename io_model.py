@@ -41,6 +41,10 @@ def E3SM_io_HIST2000_branched_all(lon_lim,lat_lim,varlist=['FSNT','FLNT'],case=N
         casename = '20211029_mod_coare30.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
     elif case in ['coare35_year1']:
         casename = '20211029_mod_coare35_year1.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+    elif case in ['coare35_year1-5']:
+        casename = '20211029_mod_coare35_year1-5.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+    elif case in ['coare35_year5-10']:
+        casename = '20211029_mod_coare35_year5-10.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
     elif case in ['original']:
         casename = '20210501.HIST2000_branched_all.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
     else :
@@ -50,7 +54,9 @@ def E3SM_io_HIST2000_branched_all(lon_lim,lat_lim,varlist=['FSNT','FLNT'],case=N
     # file name setting
     data_vars = varlist
 
-    data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
+    # data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
+    #                         casename)
+    data_path = os.path.join('/maloney-scratch2/joedhsu/E3SM_simulation/',
                             casename)
     if realm == 'atm':
         da_list = []
@@ -292,6 +298,12 @@ def E3SM_coare_daily_cori_io_dask(hist='h2',case='coare30',realm='atm'):
     elif case in ['coare35_year1']:
         casename1 = '20211029_mod_coare35.HIST2000_365.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
         totalcase = [casename1]
+    elif case in ['coare35_year1-5']:
+        casename1 = '20211029_mod_coare35.HIST2000_365cont_5years.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+        totalcase = [casename1]
+    elif case in ['coare35_year5-10']:
+        casename1 = '20211029_mod_coare35.HIST2000_365cont2_5years.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+        totalcase = [casename1]
     else :
         print('Please enter casename')
         
@@ -299,7 +311,10 @@ def E3SM_coare_daily_cori_io_dask(hist='h2',case='coare30',realm='atm'):
     if realm == 'atm':
         da_list = []
         for casename in totalcase:
-            data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
+            # data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
+            #                                         casename,
+            #                                         'regrid')
+            data_path = os.path.join('/maloney-scratch2/joedhsu/E3SM_simulation/',
                                                     casename,
                                                     'regrid')
 
@@ -315,7 +330,10 @@ def E3SM_coare_daily_cori_io_dask(hist='h2',case='coare30',realm='atm'):
     elif realm == 'ocn':
         da_list = []
         for casename in totalcase:
-            data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
+            # data_path = os.path.join('/maloney-scratch/joedhsu/proj1/data/E3SM_simulation/',
+            #                                         casename,
+            #                                         'regrid')
+            data_path = os.path.join('/maloney-scratch2/joedhsu/E3SM_simulation/',
                                                     casename,
                                                     'regrid')
 
