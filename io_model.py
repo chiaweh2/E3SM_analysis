@@ -305,6 +305,9 @@ def E3SM_coare_daily_cori_io_dask(hist='h2',case='coare30',realm='atm'):
     elif case in ['coare35_year5-10']:
         casename1 = '20211029_mod_coare35.HIST2000_365cont2_5years.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
         totalcase = [casename1]
+    elif case in ['coare35_year10']:
+        casename1 = '20211029_mod_coare35.HIST2000_365cont3.A_WCYCL20TRS_CMIP6.ne30_oECv3_ICG.cori-knl'
+        totalcase = [casename1]
     else :
         print('Please enter casename')
         
